@@ -34,14 +34,14 @@
      username TEXT UNIQUE NOT NULL,
      full_name TEXT NOT NULL,
      avatar_url TEXT,
-     created_at TIMESTAMP WITH TIME ZONE DEFAULT (NOW() AT TIME ZONE 'UTC'),
-     updated_at TIMESTAMP WITH TIME ZONE DEFAULT (NOW() AT TIME ZONE 'UTC')
+     created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT (NOW() AT TIME ZONE 'UTC'),
+     updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT (NOW() AT TIME ZONE 'UTC')
    );
 
    -- Create recipes table
    CREATE TABLE recipes (
      id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-     user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
+     user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
      title TEXT NOT NULL,
      description TEXT,
      image_url TEXT,
@@ -49,16 +49,16 @@
      steps JSONB NOT NULL,
      category TEXT NOT NULL,
      tags TEXT[] DEFAULT '{}',
-     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+     created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT (NOW() AT TIME ZONE 'UTC'),
+     updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT (NOW() AT TIME ZONE 'UTC')
    );
 
    -- Create bookmarks table
    CREATE TABLE bookmarks (
      id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-     user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
-     recipe_id UUID REFERENCES recipes(id) ON DELETE CASCADE,
-     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+     user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+     recipe_id UUID NOT NULL REFERENCES recipes(id) ON DELETE CASCADE,
+     created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT (NOW() AT TIME ZONE 'UTC'),
      UNIQUE(user_id, recipe_id)
    );
 
@@ -175,12 +175,12 @@ lib/
 - `username` (TEXT, UNIQUE, NOT NULL)
 - `full_name` (TEXT, NOT NULL)
 - `avatar_url` (TEXT)
-- `created_at` (TIMESTAMP WITH TIME ZONE, DEFAULT (NOW() AT TIME ZONE 'UTC'))
-- `updated_at` (TIMESTAMP WITH TIME ZONE, DEFAULT (NOW() AT TIME ZONE 'UTC'))
+- `created_at` (TIMESTAMP WITH TIME ZONE, NOT NULL, DEFAULT (NOW() AT TIME ZONE 'UTC'))
+- `updated_at` (TIMESTAMP WITH TIME ZONE, NOT NULL, DEFAULT (NOW() AT TIME ZONE 'UTC'))
 
 #### `recipes`
 - `id` (UUID, PK)
-- `user_id` (UUID, FK to auth.users)
+- `user_id` (UUID, NOT NULL, FK to auth.users)
 - `title` (TEXT, NOT NULL)
 - `description` (TEXT)
 - `image_url` (TEXT)
@@ -188,14 +188,14 @@ lib/
 - `steps` (JSONB, NOT NULL)
 - `category` (TEXT, NOT NULL)
 - `tags` (TEXT[], DEFAULT '{}')
-- `created_at` (TIMESTAMP WITH TIME ZONE, DEFAULT NOW())
-- `updated_at` (TIMESTAMP WITH TIME ZONE, DEFAULT NOW())
+- `created_at` (TIMESTAMP WITH TIME ZONE, NOT NULL, DEFAULT (NOW() AT TIME ZONE 'UTC'))
+- `updated_at` (TIMESTAMP WITH TIME ZONE, NOT NULL, DEFAULT (NOW() AT TIME ZONE 'UTC'))
 
 #### `bookmarks`
 - `id` (UUID, PK)
-- `user_id` (UUID, FK to auth.users)
-- `recipe_id` (UUID, FK to recipes)
-- `created_at` (TIMESTAMP WITH TIME ZONE, DEFAULT NOW())
+- `user_id` (UUID, NOT NULL, FK to auth.users)
+- `recipe_id` (UUID, NOT NULL, FK to recipes)
+- `created_at` (TIMESTAMP WITH TIME ZONE, NOT NULL, DEFAULT (NOW() AT TIME ZONE 'UTC'))
 
 ### Row Level Security Policies:
 
