@@ -15,7 +15,7 @@ export interface Recipe {
   ingredients: string[]
   steps: string[]
   category: string
-  tags: string[]
+  tags?: string[]
   created_at: string
   updated_at: string
 }
