@@ -8,7 +8,7 @@ interface RecipeCardProps {
   category: string;
 }
 
-export default function RecipeCard({ id, title, author, image, cookTime, difficulty, category }: RecipeCardProps) {
+export default function RecipeCard({ title, author, cookTime, difficulty, category }: RecipeCardProps) {
   return (
     <div className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow">
       <div className="h-48 bg-gradient-to-br from-orange-100 to-red-100 flex items-center justify-center">
