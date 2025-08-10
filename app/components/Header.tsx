@@ -9,6 +9,9 @@ export default function Header() {
   const { user, loading } = useAuth();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
+  // Show loading state only for a reasonable amount of time
+  const showLoading = loading && !user;
+
   return (
     <nav className="bg-white shadow-sm border-b border-gray-100">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -27,8 +30,11 @@ export default function Header() {
               Categories
             </Link>
             
-            {loading ? (
-              <div className="animate-pulse bg-gray-200 h-4 w-20 rounded"></div>
+            {showLoading ? (
+              <div className="flex items-center space-x-2">
+                <div className="animate-pulse bg-gray-200 h-4 w-20 rounded"></div>
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-orange-600"></div>
+              </div>
             ) : user ? (
               <div className="flex items-center space-x-4">
                 <Link href="/recipes/create" className="text-gray-700 hover:text-orange-600 transition-colors">
@@ -41,10 +47,12 @@ export default function Header() {
                   >
                     <div className="w-8 h-8 bg-orange-100 rounded-full flex items-center justify-center">
                       <span className="text-orange-600 font-medium text-sm">
-                        {user.profile?.full_name?.charAt(0) || user.email?.charAt(0)}
+                        {user.profile?.full_name?.charAt(0) || (loading ? '...' : user.email?.charAt(0) || 'U')}
                       </span>
                     </div>
-                    <span className="hidden lg:block">{user.profile?.full_name || user.email}</span>
+                    <span className="hidden lg:block">
+                      {user.profile?.full_name || (loading ? 'Loading...' : user.email || 'User')}
+                    </span>
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                     </svg>

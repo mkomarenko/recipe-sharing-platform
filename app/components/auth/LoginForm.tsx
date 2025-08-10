@@ -6,7 +6,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import Link from 'next/link'
 import { useAuth } from '@/app/contexts/AuthContext'
-import { useRouter, useSearchParams } from 'next/navigation'
+import { useSearchParams, useRouter } from 'next/navigation'
 
 const loginSchema = z.object({
   email: z.string().email('Please enter a valid email address'),
@@ -19,8 +19,8 @@ export default function LoginForm() {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const { signIn } = useAuth()
-  const router = useRouter()
   const searchParams = useSearchParams()
+  const router = useRouter()
 
   const {
     register,
@@ -35,13 +35,17 @@ export default function LoginForm() {
     setError(null)
 
     try {
-      await signIn(data.email, data.password)
-      
+            await signIn(data.email, data.password)
+
       // Get redirect destination from URL parameters or default to dashboard
       const redirectTo = searchParams.get('redirectTo')
       const destination = redirectTo && redirectTo.startsWith('/') ? redirectTo : '/dashboard'
       
-      router.push(destination)
+      // Small delay to ensure session cookies are set properly
+      setTimeout(() => {
+        window.location.href = destination
+      }, 300)
+      
     } catch (err: unknown) {
       const errorMessage = err instanceof Error ? err.message : 'An error occurred during login'
       setError(errorMessage)

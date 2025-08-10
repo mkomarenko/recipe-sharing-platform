@@ -7,7 +7,7 @@ export interface AuthUser extends User {
     username: string
     full_name: string
     avatar_url?: string
-  }
+  } | null
 }
 
 export interface SignUpData {
@@ -24,22 +24,44 @@ export interface SignInData {
 
 // Sign up a new user
 export async function signUp({ email, password, username, full_name }: SignUpData) {
-  const { data, error } = await supabase.auth.signUp({
-    email,
-    password,
-    options: {
-      data: {
-        username,
-        full_name,
+  try {
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        data: {
+          username,
+          full_name,
+        },
+        emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/auth/confirm`,
       },
-    },
-  })
+    })
 
-  if (error) {
+    if (error) {
+      throw error
+    }
+
+    if (data.user) {
+      // Create profile immediately
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .insert({
+          id: data.user.id,
+          username,
+          full_name,
+        })
+
+      if (profileError) {
+        // Don't fail the signup if profile creation fails
+        // The profile will be created later when getCurrentUser is called
+        // Profile creation failed - will be handled later
+      }
+    }
+
+    return data
+  } catch (error) {
     throw error
   }
-
-  return data
 }
 
 // Sign in an existing user
@@ -59,30 +81,130 @@ export async function signIn({ email, password }: SignInData) {
 // Sign out the current user
 export async function signOut() {
   const { error } = await supabase.auth.signOut()
-
   if (error) {
     throw error
   }
 }
 
-// Get the current user
+// Get the current authenticated user with profile data
 export async function getCurrentUser(): Promise<AuthUser | null> {
-  const { data: { user }, error } = await supabase.auth.getUser()
+  try {
+    // First check if we have a session
+    const { data: { session }, error: sessionError } = await supabase.auth.getSession()
+    
+    if (sessionError) {
+      return null
+    }
+    
+    if (!session?.user) {
+      return null
+    }
+    
+    const user = session.user
 
-  if (error || !user) {
+    // Fetch user profile
+    const { data: profile, error: profileError } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('id', user.id)
+      .single()
+
+    if (profileError) {
+      // If profile doesn't exist, try to create it from user metadata
+      if (profileError.code === 'PGRST116' || profileError.message?.includes('No rows returned')) {
+        const userMetadata = user.user_metadata
+        
+        if (userMetadata?.username && userMetadata?.full_name) {
+          try {
+            const { data: newProfile, error: createError } = await supabase
+              .from('profiles')
+              .insert({
+                id: user.id,
+                username: userMetadata.username,
+                full_name: userMetadata.full_name,
+              })
+              .select()
+              .single()
+
+            if (createError) {
+              // Return user without profile rather than failing completely
+              return {
+                ...user,
+                profile: null,
+              }
+            }
+
+            return {
+              ...user,
+              profile: newProfile,
+            }
+          } catch (createError) {
+            // Return user without profile rather than failing completely
+            return {
+              ...user,
+              profile: null,
+            }
+          }
+        } else {
+          // For email verification, create a basic profile with email
+          try {
+            const { data: newProfile, error: createError } = await supabase
+              .from('profiles')
+              .insert({
+                id: user.id,
+                username: user.email?.split('@')[0] || 'user',
+                full_name: user.email || 'User',
+              })
+              .select()
+              .single()
+
+            if (createError) {
+              // Return user without profile rather than failing completely
+              return {
+                ...user,
+                profile: null,
+              }
+            } else {
+              return {
+                ...user,
+                profile: newProfile,
+              }
+            }
+          } catch (createError) {
+            // Return user without profile rather than failing completely
+            return {
+              ...user,
+              profile: null,
+            }
+          }
+        }
+      }
+      
+      // Return user without profile rather than failing completely
+      return {
+        ...user,
+        profile: null,
+      }
+    }
+
+    return {
+      ...user,
+      profile: profile || null,
+    }
+  } catch (error) {
+    // If we have a session but getCurrentUser fails, return the basic user
+    try {
+      const { data: { session } } = await supabase.auth.getSession()
+      if (session?.user) {
+        return {
+          ...session.user,
+          profile: null,
+        }
+      }
+    } catch (fallbackError) {
+      // Fallback also failed, return null
+    }
     return null
-  }
-
-  // Fetch user profile
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('*')
-    .eq('id', user.id)
-    .single()
-
-  return {
-    ...user,
-    profile: profile || undefined,
   }
 }
 
@@ -95,7 +217,7 @@ export async function isAuthenticated(): Promise<boolean> {
 // Reset password
 export async function resetPassword(email: string) {
   const { error } = await supabase.auth.resetPasswordForEmail(email, {
-    redirectTo: `${window.location.origin}/auth/reset-password`,
+    redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || window.location.origin}/auth/reset-password`,
   })
 
   if (error) {

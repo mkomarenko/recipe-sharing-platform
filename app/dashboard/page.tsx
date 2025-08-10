@@ -11,6 +11,7 @@ export default function DashboardPage() {
   const router = useRouter()
 
   useEffect(() => {
+    // Middleware should handle most redirects, this is just a fallback
     if (!loading && !user) {
       router.push('/auth/login?redirectTo=/dashboard')
     }
