@@ -1,20 +1,30 @@
 'use client'
 
-import { useAuth } from '@/app/contexts/AuthContext'
 import { Header } from '@/app/components'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useEffect } from 'react'
+import { useAuth } from '@/app/contexts/AuthContext'
 
 export default function DashboardPage() {
   const { user, loading } = useAuth()
   const router = useRouter()
 
   useEffect(() => {
-    // Middleware should handle most redirects, this is just a fallback
+    // Add a timeout to prevent infinite loading
+    const timeout = setTimeout(() => {
+      if (loading) {
+        router.push('/auth/login?redirectTo=/dashboard')
+      }
+    }, 15000) // 15 second timeout
+
+    // If not loading and no user, redirect to login
     if (!loading && !user) {
+      clearTimeout(timeout)
       router.push('/auth/login?redirectTo=/dashboard')
     }
+
+    return () => clearTimeout(timeout)
   }, [user, loading, router])
 
   if (loading) {
@@ -49,7 +59,7 @@ export default function DashboardPage() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            Welcome back, {user.profile?.full_name || user.email}!
+            Welcome back, {user.profile?.full_name || user.user_metadata?.full_name || user.email}!
           </h1>
           <p className="text-gray-600">Manage your recipes and discover new favorites.</p>
         </div>
@@ -98,49 +108,40 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          <div className="bg-white rounded-lg shadow-md p-6">
-            <h2 className="text-xl font-semibold text-gray-900 mb-4">Quick Actions</h2>
-            <div className="space-y-3">
-              <Link
-                href="/recipes/create"
-                className="flex items-center p-3 bg-orange-50 rounded-lg hover:bg-orange-100 transition-colors"
-              >
-                <svg className="w-5 h-5 text-orange-600 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+        <div className="bg-white rounded-lg shadow-md p-6">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-xl font-semibold text-gray-900">Quick Actions</h2>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <Link
+              href="/recipes/create"
+              className="flex items-center p-4 border border-gray-200 rounded-lg hover:border-orange-300 hover:bg-orange-50 transition-colors"
+            >
+              <div className="p-2 rounded-full bg-orange-100 text-orange-600 mr-3">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
                 </svg>
-                <span className="text-gray-900">Create New Recipe</span>
-              </Link>
-              <Link
-                href="/recipes"
-                className="flex items-center p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
-              >
-                <svg className="w-5 h-5 text-gray-600 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              </div>
+              <div>
+                <h3 className="font-medium text-gray-900">Create Recipe</h3>
+                <p className="text-sm text-gray-600">Share your favorite recipe</p>
+              </div>
+            </Link>
+
+            <Link
+              href="/recipes"
+              className="flex items-center p-4 border border-gray-200 rounded-lg hover:border-orange-300 hover:bg-orange-50 transition-colors"
+            >
+              <div className="p-2 rounded-full bg-blue-100 text-blue-600 mr-3">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                 </svg>
-                <span className="text-gray-900">Browse Recipes</span>
-              </Link>
-              <Link
-                href="/profile"
-                className="flex items-center p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
-              >
-                <svg className="w-5 h-5 text-gray-600 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                </svg>
-                <span className="text-gray-900">Edit Profile</span>
-              </Link>
-            </div>
-          </div>
-
-          <div className="bg-white rounded-lg shadow-md p-6">
-            <h2 className="text-xl font-semibold text-gray-900 mb-4">Recent Activity</h2>
-            <div className="text-center py-8">
-              <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-              </svg>
-              <p className="mt-2 text-gray-500">No recent activity</p>
-              <p className="text-sm text-gray-400">Create your first recipe to get started!</p>
-            </div>
+              </div>
+              <div>
+                <h3 className="font-medium text-gray-900">Browse Recipes</h3>
+                <p className="text-sm text-gray-600">Discover new favorites</p>
+              </div>
+            </Link>
           </div>
         </div>
       </div>

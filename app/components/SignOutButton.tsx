@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { supabase } from '@/lib/supabase'
+import { useAuth } from '@/app/contexts/AuthContext'
 
 interface SignOutButtonProps {
   onSignOut?: () => void
@@ -11,34 +11,38 @@ interface SignOutButtonProps {
 
 export default function SignOutButton({ onSignOut, className, children }: SignOutButtonProps) {
   const [isLoading, setIsLoading] = useState(false)
+  const { signOut } = useAuth()
 
   const handleSignOut = async () => {
     if (isLoading) return
 
     setIsLoading(true)
-    
+
     try {
-      // Direct call to Supabase
-      const { error } = await supabase.auth.signOut()
-      
-      if (error) {
-        throw error
-      }
-      
+      // Use the AuthContext signOut method
+      await signOut()
+
       // Call optional callback
       if (onSignOut) {
         onSignOut()
       }
-      
+
       // Force reload to clear all state
       window.location.href = '/'
+
+    } catch (error) {
+      // Even if there's an error, try to clear state and redirect
       
-    } catch {
-      alert('Failed to sign out. Please try again.')
+      if (onSignOut) {
+        onSignOut()
+      }
+      
+      window.location.href = '/'
     } finally {
       setIsLoading(false)
     }
   }
+
 
   return (
     <button

@@ -102,107 +102,76 @@ export async function getCurrentUser(): Promise<AuthUser | null> {
     
     const user = session.user
 
-    // Fetch user profile
-    const { data: profile, error: profileError } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('id', user.id)
-      .single()
-
-    if (profileError) {
-      // If profile doesn't exist, try to create it from user metadata
-      if (profileError.code === 'PGRST116' || profileError.message?.includes('No rows returned')) {
-        const userMetadata = user.user_metadata
-        
-        if (userMetadata?.username && userMetadata?.full_name) {
-          try {
-            const { data: newProfile, error: createError } = await supabase
-              .from('profiles')
-              .insert({
-                id: user.id,
-                username: userMetadata.username,
-                full_name: userMetadata.full_name,
-              })
-              .select()
-              .single()
-
-            if (createError) {
-              // Return user without profile rather than failing completely
-              return {
-                ...user,
-                profile: null,
-              }
-            }
-
-            return {
-              ...user,
-              profile: newProfile,
-            }
-          } catch (createError) {
-            // Return user without profile rather than failing completely
-            return {
-              ...user,
-              profile: null,
-            }
-          }
-        } else {
-          // For email verification, create a basic profile with email
-          try {
-            const { data: newProfile, error: createError } = await supabase
-              .from('profiles')
-              .insert({
-                id: user.id,
-                username: user.email?.split('@')[0] || 'user',
-                full_name: user.email || 'User',
-              })
-              .select()
-              .single()
-
-            if (createError) {
-              // Return user without profile rather than failing completely
-              return {
-                ...user,
-                profile: null,
-              }
-            } else {
-              return {
-                ...user,
-                profile: newProfile,
-              }
-            }
-          } catch (createError) {
-            // Return user without profile rather than failing completely
-            return {
-              ...user,
-              profile: null,
-            }
-          }
-        }
-      }
-      
-      // Return user without profile rather than failing completely
-      return {
-        ...user,
-        profile: null,
-      }
+    // Create basic profile from user metadata immediately (offline-first approach)
+    const userMetadata = user.user_metadata
+    const basicProfile = {
+      id: user.id,
+      username: userMetadata?.username || user.email?.split('@')[0] || 'user',
+      full_name: userMetadata?.full_name || user.email || 'User',
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
     }
-
-    return {
+    
+    // Return user with basic profile immediately
+    const result = {
       ...user,
-      profile: profile || null,
+      profile: basicProfile,
     }
+    
+    // Try to fetch user profile from database with timeout protection
+    let profile = null
+    try {
+      // Create timeout promise
+      const timeoutPromise = new Promise((_, reject) => {
+        setTimeout(() => reject(new Error('Database query timeout')), 3000) // 3 second timeout
+      })
+
+      // Race the database query against the timeout
+      const profileQuery = supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', user.id)
+        .single()
+
+      const { data: profileData, error: profileError } = await Promise.race([
+        profileQuery,
+        timeoutPromise
+      ]) as any
+
+      if (!profileError && profileData) {
+        profile = profileData
+      }
+    } catch (error) {
+      // Database unavailable - using offline mode
+    }
+    
+    if (profile) {
+      result.profile = profile
+    }
+    
+    return result
   } catch (error) {
     // If we have a session but getCurrentUser fails, return the basic user
     try {
       const { data: { session } } = await supabase.auth.getSession()
       if (session?.user) {
+        const user = session.user
+        const userMetadata = user.user_metadata
+        const basicProfile = {
+          id: user.id,
+          username: userMetadata?.username || user.email?.split('@')[0] || 'user',
+          full_name: userMetadata?.full_name || user.email || 'User',
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        }
+        
         return {
-          ...session.user,
-          profile: null,
+          ...user,
+          profile: basicProfile,
         }
       }
     } catch (fallbackError) {
-      // Fallback also failed, return null
+      // Fallback failed
     }
     return null
   }

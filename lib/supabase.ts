@@ -17,12 +17,32 @@ export const supabase = createBrowserClient(supabaseUrl, supabaseAnonKey, {
     // Persist session
     persistSession: true,
     // Detect session in URL - this is crucial for PKCE flow
-    detectSessionInUrl: true
+    detectSessionInUrl: true,
+    // Flow type for better PKCE handling
+    flowType: 'pkce',
+    // Storage key for better session management
+    storageKey: 'supabase-auth-token',
+    // Storage type
+    storage: typeof window !== 'undefined' ? window.localStorage : undefined,
+    // Better error handling
+    debug: process.env.NODE_ENV === 'development'
   },
   // Ensure cookies are handled properly
   cookieOptions: {
     secure: process.env.NODE_ENV === 'production',
     sameSite: 'lax'
+  },
+  // Global configuration
+  global: {
+    headers: {
+      'X-Client-Info': 'recipe-sharing-platform'
+    }
+  },
+  // Real-time configuration
+  realtime: {
+    params: {
+      eventsPerSecond: 10
+    }
   }
 })
 

@@ -110,7 +110,7 @@ export default function RegisterForm() {
               {...register('username')}
               type="text"
               id="username"
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent text-gray-900 placeholder-gray-400"
               placeholder="Choose a username"
             />
             {errors.username && (
@@ -126,7 +126,7 @@ export default function RegisterForm() {
               {...register('full_name')}
               type="text"
               id="full_name"
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent text-gray-900 placeholder-gray-400"
               placeholder="Enter your full name"
             />
             {errors.full_name && (
@@ -142,7 +142,7 @@ export default function RegisterForm() {
               {...register('email')}
               type="email"
               id="email"
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent text-gray-900 placeholder-gray-400"
               placeholder="Enter your email"
             />
             {errors.email && (
@@ -158,7 +158,7 @@ export default function RegisterForm() {
               {...register('password')}
               type="password"
               id="password"
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent text-gray-900 placeholder-gray-400"
               placeholder="Create a password"
             />
             {errors.password && (
@@ -174,7 +174,7 @@ export default function RegisterForm() {
               {...register('confirmPassword')}
               type="password"
               id="confirmPassword"
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent text-gray-900 placeholder-gray-400"
               placeholder="Confirm your password"
             />
             {errors.confirmPassword && (

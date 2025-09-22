@@ -16,5 +16,4 @@ export { default as RecipeCard } from './RecipeCard'
 export { LoadingSpinner, LoadingPage, LoadingCard } from './LoadingSpinner'
 export { ErrorBoundary } from './ErrorBoundary'
 
-// Debug Components (Development Only)
-export { default as AuthDebugPanel } from './AuthDebugPanel' 
+ 
