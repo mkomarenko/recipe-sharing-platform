@@ -11,7 +11,7 @@ CREATE TABLE IF NOT EXISTS profiles (
   username TEXT UNIQUE NOT NULL,
   full_name TEXT NOT NULL,
   avatar_url TEXT,
-  bio TEXT,
+  bio TEXT CHECK (char_length(bio) <= 256),
   website TEXT,
   location TEXT,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
@@ -206,3 +206,34 @@ VALUES
     false
   )
 ON CONFLICT DO NOTHING;
+
+-- Storage setup for avatars
+-- Create storage bucket for avatars (if not exists)
+INSERT INTO storage.buckets (id, name, public)
+VALUES ('avatars', 'avatars', true)
+ON CONFLICT DO NOTHING;
+
+-- Storage policies for avatars bucket
+CREATE POLICY "Avatar images are publicly accessible" ON storage.objects
+  FOR SELECT USING (bucket_id = 'avatars');
+
+CREATE POLICY "Users can upload their own avatar" ON storage.objects
+  FOR INSERT WITH CHECK (
+    bucket_id = 'avatars' AND
+    auth.uid() IS NOT NULL AND
+    name LIKE auth.uid()::text || '%'
+  );
+
+CREATE POLICY "Users can update their own avatar" ON storage.objects
+  FOR UPDATE USING (
+    bucket_id = 'avatars' AND
+    auth.uid() IS NOT NULL AND
+    name LIKE auth.uid()::text || '%'
+  );
+
+CREATE POLICY "Users can delete their own avatar" ON storage.objects
+  FOR DELETE USING (
+    bucket_id = 'avatars' AND
+    auth.uid() IS NOT NULL AND
+    name LIKE auth.uid()::text || '%'
+  );

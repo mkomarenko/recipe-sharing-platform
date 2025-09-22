@@ -11,6 +11,9 @@ export { default as SearchSection } from './SearchSection'
 export { default as FeaturedRecipes } from './FeaturedRecipes'
 export { default as StatsSection } from './StatsSection'
 
+// Profile Components
+export { default as ProfileEditForm } from './profile/ProfileEditForm'
+
 // UI Components
 export { default as RecipeCard } from './RecipeCard'
 export { LoadingSpinner, LoadingPage, LoadingCard } from './LoadingSpinner'
