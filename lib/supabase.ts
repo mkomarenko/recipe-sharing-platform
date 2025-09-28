@@ -51,12 +51,17 @@ export interface Recipe {
   id: string
   user_id: string
   title: string
-  description: string
+  description?: string
   image_url?: string
   ingredients: string[]
   steps: string[]
   category: string
   tags?: string[]
+  prep_time?: number // in minutes
+  cook_time?: number // in minutes
+  servings?: number
+  difficulty?: 'easy' | 'medium' | 'hard'
+  is_public?: boolean
   created_at: string
   updated_at: string
 }

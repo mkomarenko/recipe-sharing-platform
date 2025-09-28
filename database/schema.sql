@@ -237,3 +237,33 @@ CREATE POLICY "Users can delete their own avatar" ON storage.objects
     auth.uid() IS NOT NULL AND
     name LIKE auth.uid()::text || '%'
   );
+
+-- Storage setup for recipe images
+-- Create storage bucket for recipe images (if not exists)
+INSERT INTO storage.buckets (id, name, public)
+VALUES ('recipe-images', 'recipe-images', true)
+ON CONFLICT DO NOTHING;
+
+-- Storage policies for recipe images bucket
+CREATE POLICY "Recipe images are publicly accessible" ON storage.objects
+  FOR SELECT USING (bucket_id = 'recipe-images');
+
+CREATE POLICY "Authenticated users can upload recipe images" ON storage.objects
+  FOR INSERT WITH CHECK (
+    bucket_id = 'recipe-images' AND
+    auth.uid() IS NOT NULL
+  );
+
+CREATE POLICY "Users can update their own recipe images" ON storage.objects
+  FOR UPDATE USING (
+    bucket_id = 'recipe-images' AND
+    auth.uid() IS NOT NULL AND
+    name LIKE auth.uid()::text || '%'
+  );
+
+CREATE POLICY "Users can delete their own recipe images" ON storage.objects
+  FOR DELETE USING (
+    bucket_id = 'recipe-images' AND
+    auth.uid() IS NOT NULL AND
+    name LIKE auth.uid()::text || '%'
+  );
