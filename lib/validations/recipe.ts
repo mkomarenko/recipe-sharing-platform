@@ -42,7 +42,7 @@ export const createRecipeSchema = z.object({
     .optional(),
   is_public: z
     .boolean()
-    .default(true)
+    .optional()
 })
 
 // Type for the form data

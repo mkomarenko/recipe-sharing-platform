@@ -6,7 +6,7 @@ const nextConfig: NextConfig = {
   
   // Optimize images
   images: {
-    domains: ['localhost'],
+    domains: ['localhost', 'lrnglcnmjowbgpniouog.supabase.co'],
     formats: ['image/webp', 'image/avif'],
   },
   

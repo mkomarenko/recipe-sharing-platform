@@ -201,6 +201,91 @@ export async function getPublicRecipes(
   }
 }
 
+// Update an existing recipe
+export async function updateRecipe(
+  id: string,
+  formData: CreateRecipeFormData,
+  userId: string,
+  imageFile?: File
+): Promise<Recipe | null> {
+  try {
+    // First get the recipe to check ownership
+    const existingRecipe = await getRecipeById(id)
+    if (!existingRecipe || existingRecipe.user_id !== userId) {
+      console.error('Recipe not found or user does not own this recipe')
+      return null
+    }
+
+    let imageUrl: string | null | undefined = existingRecipe.image_url
+
+    // Handle image update
+    if (imageFile) {
+      // Delete old image if it exists
+      if (existingRecipe.image_url) {
+        await deleteRecipeImage(existingRecipe.image_url)
+      }
+      // Upload new image
+      imageUrl = await uploadRecipeImage(imageFile, userId)
+      if (!imageUrl) {
+        throw new Error('Failed to upload image')
+      }
+    }
+
+    // Parse the text-based arrays into proper arrays
+    const ingredients = formData.ingredients
+      .split('\n')
+      .map(item => item.trim())
+      .filter(item => item.length > 0)
+
+    const steps = formData.steps
+      .split('\n')
+      .map(item => item.trim())
+      .filter(item => item.length > 0)
+
+    const tags = formData.tags
+      ? formData.tags
+          .split(',')
+          .map(tag => tag.trim())
+          .filter(tag => tag.length > 0)
+      : []
+
+    // Prepare update data
+    const updateData = {
+      title: formData.title,
+      description: formData.description || '',
+      image_url: imageUrl,
+      ingredients,
+      steps,
+      category: formData.category,
+      tags,
+      prep_time: formData.prep_time,
+      cook_time: formData.cook_time,
+      servings: formData.servings,
+      difficulty: formData.difficulty,
+      is_public: formData.is_public ?? true,
+      updated_at: new Date().toISOString()
+    }
+
+    const { data, error } = await supabase
+      .from('recipes')
+      .update(updateData)
+      .eq('id', id)
+      .eq('user_id', userId)
+      .select()
+      .single()
+
+    if (error) {
+      console.error('Error updating recipe:', error)
+      return null
+    }
+
+    return data as Recipe
+  } catch (error) {
+    console.error('Error updating recipe:', error)
+    return null
+  }
+}
+
 // Delete recipe (and its image)
 export async function deleteRecipe(id: string, userId: string): Promise<boolean> {
   try {

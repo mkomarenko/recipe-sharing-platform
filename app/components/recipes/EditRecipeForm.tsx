@@ -1,37 +1,79 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
-import { useAuth } from '@/app/contexts/AuthContext'
 import { createRecipeSchema, type CreateRecipeFormData, RECIPE_CATEGORIES, DIFFICULTY_LEVELS } from '@/lib/validations/recipe'
-import { createRecipe } from '@/lib/actions/recipe'
+import { getRecipeById, updateRecipe } from '@/lib/actions/recipe'
+import type { Recipe } from '@/lib/supabase'
 
-export default function CreateRecipeForm() {
+interface EditRecipeFormProps {
+  recipeId: string
+  userId: string
+}
+
+export default function EditRecipeForm({ recipeId, userId }: EditRecipeFormProps) {
   const [isLoading, setIsLoading] = useState(false)
+  const [isFetchingRecipe, setIsFetchingRecipe] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [imagePreview, setImagePreview] = useState<string | null>(null)
   const [selectedImage, setSelectedImage] = useState<File | null>(null)
-  const { user } = useAuth()
+  const [recipe, setRecipe] = useState<Recipe | null>(null)
   const router = useRouter()
 
   const {
     register,
     handleSubmit,
     formState: { errors },
+    reset,
   } = useForm<CreateRecipeFormData>({
     resolver: zodResolver(createRecipeSchema),
-    defaultValues: {
-      title: '',
-      description: '',
-      category: '',
-      ingredients: '',
-      steps: '',
-      tags: '',
-    },
   })
+
+  // Fetch the recipe on mount
+  useEffect(() => {
+    async function fetchRecipe() {
+      setIsFetchingRecipe(true)
+      const fetchedRecipe = await getRecipeById(recipeId)
+
+      if (!fetchedRecipe) {
+        setError('Recipe not found')
+        setIsFetchingRecipe(false)
+        return
+      }
+
+      // Check ownership
+      if (fetchedRecipe.user_id !== userId) {
+        setError('You do not have permission to edit this recipe')
+        setIsFetchingRecipe(false)
+        return
+      }
+
+      setRecipe(fetchedRecipe)
+      setImagePreview(fetchedRecipe.image_url || null)
+
+      // Pre-fill form with existing data
+      reset({
+        title: fetchedRecipe.title,
+        description: fetchedRecipe.description || '',
+        category: fetchedRecipe.category,
+        ingredients: fetchedRecipe.ingredients.join('\n'),
+        steps: fetchedRecipe.steps.join('\n'),
+        tags: fetchedRecipe.tags?.join(', ') || '',
+        prep_time: fetchedRecipe.prep_time,
+        cook_time: fetchedRecipe.cook_time,
+        servings: fetchedRecipe.servings,
+        difficulty: fetchedRecipe.difficulty,
+        is_public: fetchedRecipe.is_public ?? true,
+      })
+
+      setIsFetchingRecipe(false)
+    }
+
+    fetchRecipe()
+  }, [recipeId, userId, reset])
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -46,33 +88,58 @@ export default function CreateRecipeForm() {
   }
 
   const onSubmit = async (data: CreateRecipeFormData) => {
-    if (!user) {
-      setError('You must be logged in to create a recipe')
-      return
-    }
-
     setIsLoading(true)
     setError(null)
 
     try {
-      const recipe = await createRecipe(data, user.id, selectedImage || undefined)
-      if (recipe) {
-        router.push(`/dashboard`)
+      const updatedRecipe = await updateRecipe(recipeId, data, userId, selectedImage || undefined)
+      if (updatedRecipe) {
+        router.push('/dashboard')
       } else {
-        setError('Failed to create recipe. Please try again.')
+        setError('Failed to update recipe. Please try again.')
       }
     } catch (err) {
-      console.error('Error creating recipe:', err)
+      console.error('Error updating recipe:', err)
       setError('An unexpected error occurred. Please try again.')
     } finally {
       setIsLoading(false)
     }
   }
 
+  if (isFetchingRecipe) {
+    return (
+      <div className="max-w-4xl mx-auto p-6">
+        <div className="bg-white rounded-lg shadow-md p-8">
+          <div className="flex justify-center py-12">
+            <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-orange-600"></div>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  if (error && !recipe) {
+    return (
+      <div className="max-w-4xl mx-auto p-6">
+        <div className="bg-white rounded-lg shadow-md p-8">
+          <div className="text-center">
+            <h1 className="text-2xl font-bold text-red-600 mb-4">{error}</h1>
+            <button
+              onClick={() => router.push('/dashboard')}
+              className="px-6 py-2 bg-orange-600 text-white rounded-md hover:bg-orange-700"
+            >
+              Back to Dashboard
+            </button>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="max-w-4xl mx-auto p-6">
       <div className="bg-white rounded-lg shadow-md p-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-8">Create New Recipe</h1>
+        <h1 className="text-3xl font-bold text-gray-900 mb-8">Edit Recipe</h1>
 
         {error && (
           <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-md">
@@ -217,7 +284,7 @@ export default function CreateRecipeForm() {
           {/* Image Upload */}
           <div>
             <label htmlFor="image" className="block text-sm font-medium text-gray-700 mb-2">
-              Recipe Image
+              Recipe Image (leave empty to keep current image)
             </label>
             <input
               type="file"
@@ -310,7 +377,7 @@ export default function CreateRecipeForm() {
               disabled={isLoading}
               className="flex-1 bg-orange-600 text-white py-2 px-4 rounded-md hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {isLoading ? 'Creating Recipe...' : 'Create Recipe'}
+              {isLoading ? 'Updating Recipe...' : 'Update Recipe'}
             </button>
             <button
               type="button"
