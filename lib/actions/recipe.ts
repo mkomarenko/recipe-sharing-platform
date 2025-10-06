@@ -201,6 +201,50 @@ export async function getPublicRecipes(
   }
 }
 
+// Get latest public recipes
+export async function getLatestRecipes(limit = 8): Promise<Recipe[]> {
+  try {
+    const { data, error } = await supabase
+      .from('recipes')
+      .select('*')
+      .eq('is_public', true)
+      .order('created_at', { ascending: false })
+      .limit(limit)
+
+    if (error) {
+      console.error('Error fetching latest recipes:', error)
+      return []
+    }
+
+    return data as Recipe[]
+  } catch (error) {
+    console.error('Error fetching latest recipes:', error)
+    return []
+  }
+}
+
+// Get trending recipes (for now, based on recent creation - will be enhanced with bookmarks/views later)
+export async function getTrendingRecipes(limit = 4): Promise<Recipe[]> {
+  try {
+    const { data, error } = await supabase
+      .from('recipes')
+      .select('*')
+      .eq('is_public', true)
+      .order('created_at', { ascending: false })
+      .limit(limit)
+
+    if (error) {
+      console.error('Error fetching trending recipes:', error)
+      return []
+    }
+
+    return data as Recipe[]
+  } catch (error) {
+    console.error('Error fetching trending recipes:', error)
+    return []
+  }
+}
+
 // Update an existing recipe
 export async function updateRecipe(
   id: string,

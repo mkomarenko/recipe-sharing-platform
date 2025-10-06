@@ -9,6 +9,7 @@ export { default as Footer } from './Footer'
 export { default as HeroSection } from './HeroSection'
 export { default as SearchSection } from './SearchSection'
 export { default as FeaturedRecipes } from './FeaturedRecipes'
+export { default as LatestRecipes } from './LatestRecipes'
 export { default as StatsSection } from './StatsSection'
 
 // Profile Components

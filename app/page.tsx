@@ -5,6 +5,7 @@ import {
   HeroSection,
   SearchSection,
   FeaturedRecipes,
+  LatestRecipes,
   StatsSection,
   Footer
 } from "./components";
@@ -17,6 +18,7 @@ export default function Home() {
       <HeroSection />
       <SearchSection />
       <FeaturedRecipes />
+      <LatestRecipes />
       <StatsSection />
       <Footer />
     </div>
