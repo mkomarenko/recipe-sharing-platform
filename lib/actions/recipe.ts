@@ -330,6 +330,49 @@ export async function updateRecipe(
   }
 }
 
+// Search recipes by title, tags, or ingredients
+export async function searchRecipes(
+  searchQuery: string,
+  category?: string,
+  limit = 8,
+  offset = 0
+): Promise<Recipe[]> {
+  try {
+    let query = supabase
+      .from('recipes')
+      .select('*')
+      .eq('is_public', true)
+
+    // Apply category filter if provided
+    if (category && category !== 'All') {
+      query = query.eq('category', category)
+    }
+
+    // Apply search filter if provided
+    if (searchQuery && searchQuery.trim() !== '') {
+      const searchTerm = searchQuery.trim()
+      // Search in title, description, tags array, and ingredients JSONB array
+      query = query.or(
+        `title.ilike.%${searchTerm}%,description.ilike.%${searchTerm}%,tags.cs.{${searchTerm}}`
+      )
+    }
+
+    const { data, error } = await query
+      .order('created_at', { ascending: false })
+      .range(offset, offset + limit - 1)
+
+    if (error) {
+      console.error('Error searching recipes:', error)
+      return []
+    }
+
+    return data as Recipe[]
+  } catch (error) {
+    console.error('Error searching recipes:', error)
+    return []
+  }
+}
+
 // Delete recipe (and its image)
 export async function deleteRecipe(id: string, userId: string): Promise<boolean> {
   try {
