@@ -1,56 +1,72 @@
-# Search Bar Implementation Plan
+# Recipe Detail Page Implementation Plan (3.5)
 
 ## Overview
-Implement search functionality for recipes that allows searching by:
-- Recipe title
-- Tags
-- Ingredients
+Implement a detailed recipe view page that displays full recipe information with bookmark functionality for logged-in users.
 
-## Tasks
+## Requirements from PRD (3.5)
+- Display full recipe (image, description, ingredients, steps, author)
+- Show number of bookmarks / likes
+- Allow logged-in users to bookmark recipe
 
-### 1. Backend: Create search function
-- [ ] Add `searchRecipes()` function to `lib/actions/recipe.ts`
-- [ ] Implement full-text search for title
-- [ ] Implement array search for tags
-- [ ] Implement JSON array search for ingredients
-- [ ] Handle empty search query (return all recipes)
-- [ ] Add pagination support
+## Implementation Tasks
 
-### 2. Frontend: Update SearchSection component
-- [ ] Add state management for search query
-- [ ] Add onChange handler for search input
-- [ ] Add debounce for search input (avoid excessive API calls)
-- [ ] Add state management for selected category filter
-- [ ] Add onClick handlers for category buttons
-- [ ] Implement active state styling for category buttons
+### 1. Backend/Data Layer
+- [ ] Create bookmark action functions in `lib/actions/bookmark.ts`
+  - [ ] `getBookmarkCount(recipeId)` - Get total bookmarks for a recipe
+  - [ ] `isRecipeBookmarked(userId, recipeId)` - Check if user bookmarked recipe
+  - [ ] `toggleBookmark(userId, recipeId)` - Add/remove bookmark
+  - [ ] `getRecipeWithAuthor(recipeId)` - Get recipe with author profile info
 
-### 3. Frontend: Create SearchResults component
-- [ ] Create new component to display search results
-- [ ] Show loading state during search
-- [ ] Display recipe cards in grid layout
-- [ ] Show "no results" message when applicable
-- [ ] Add pagination or "load more" functionality
+### 2. Recipe Detail Page
+- [ ] Create `app/recipes/[id]/page.tsx` - Main recipe detail page
+  - [ ] Fetch recipe data using `getRecipeById()`
+  - [ ] Fetch author profile data
+  - [ ] Display recipe image (or placeholder if none)
+  - [ ] Display recipe title, category, tags
+  - [ ] Display prep time, cook time, servings, difficulty
+  - [ ] Display description
+  - [ ] Display ingredients list
+  - [ ] Display step-by-step instructions
+  - [ ] Display author information (name, avatar)
+  - [ ] Display bookmark count
+  - [ ] Show edit/delete buttons if user owns recipe
 
-### 4. Frontend: Update homepage to show search results
-- [ ] Update homepage to show search results below SearchSection
-- [ ] Integrate SearchSection with results display
-- [ ] Handle URL query parameters for shareable search links
-- [ ] Show search results or latest/featured recipes based on search state
+### 3. Bookmark Component
+- [ ] Create `app/components/BookmarkButton.tsx` - Reusable bookmark toggle
+  - [ ] Display bookmark icon (filled if bookmarked, outline if not)
+  - [ ] Show bookmark count
+  - [ ] Handle bookmark toggle on click
+  - [ ] Show login prompt if user not authenticated
+  - [ ] Optimistic UI updates
+  - [ ] Handle loading and error states
 
-### 5. Testing
-- [ ] Test search by title
-- [ ] Test search by tags
-- [ ] Test search by description
-- [ ] Test category filtering
-- [ ] Test combination of search + category filter
-- [ ] Test empty results
-- [ ] Test pagination
-- [ ] Run linting and type-check
+### 4. Author Info Component
+- [ ] Create `app/components/RecipeAuthor.tsx` - Display recipe author
+  - [ ] Show avatar
+  - [ ] Show author name
+  - [ ] Show "Posted on {date}"
+  - [ ] Link to author profile (if we have profile pages)
 
-## Implementation Notes
-- Keep each change simple and minimal
-- Use existing patterns from the codebase (like LatestRecipes, FeaturedRecipes)
-- Reuse RecipeCard component for consistency
-- Follow existing code style and conventions
-- Use TypeScript strict typing
-- Implement debounce to avoid excessive API calls during typing
+### 5. Testing & Polish
+- [ ] Test recipe detail page loads correctly
+- [ ] Test bookmark functionality (logged in/out)
+- [ ] Test edit/delete buttons show only for recipe owner
+- [ ] Test responsive design (mobile/tablet/desktop)
+- [ ] Test with recipes that have no image
+- [ ] Test navigation from RecipeCard to detail page
+- [ ] Run `npm run lint && npm run type-check && npm run build`
+
+## Technical Notes
+- Recipe detail page will be at `/recipes/[id]`
+- RecipeCard already links to this route (line 29 in RecipeCard.tsx)
+- Database already has `bookmarks` table with RLS policies
+- Auth context available for checking logged-in user
+- Keep components simple and focused
+- Use existing color scheme and design patterns from the site
+
+## Success Criteria
+- Users can view full recipe details
+- Bookmark functionality works for authenticated users
+- Page is responsive and matches existing design
+- All linting and type checks pass
+- Recipe author information is displayed

@@ -11,7 +11,7 @@ interface SearchResultsProps {
   category: string
 }
 
-const RECIPES_PER_PAGE = 4
+const RECIPES_PER_PAGE = 8
 
 export default function SearchResults({ searchQuery, category }: SearchResultsProps) {
   const [recipes, setRecipes] = useState<Recipe[]>([])

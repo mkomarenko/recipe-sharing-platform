@@ -125,8 +125,9 @@ CREATE POLICY "Users can delete own recipes" ON recipes
   FOR DELETE USING (auth.uid() = user_id);
 
 -- Bookmarks policies
-CREATE POLICY "Users can view own bookmarks" ON bookmarks
-  FOR SELECT USING (auth.uid() = user_id);
+-- Allow anyone to count bookmarks for public recipes (for bookmark counts)
+CREATE POLICY "Anyone can view bookmark counts" ON bookmarks
+  FOR SELECT USING (true);
 
 CREATE POLICY "Users can create own bookmarks" ON bookmarks
   FOR INSERT WITH CHECK (auth.uid() = user_id);

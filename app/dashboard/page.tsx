@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { useAuth } from '@/app/contexts/AuthContext'
 import { getRecipesByUserId, deleteRecipe } from '@/lib/actions/recipe'
+import { getUserBookmarkCount } from '@/lib/actions/bookmark'
 import type { Recipe } from '@/lib/supabase'
 import Image from 'next/image'
 
@@ -15,6 +16,7 @@ export default function DashboardPage() {
   const [recipes, setRecipes] = useState<Recipe[]>([])
   const [isLoadingRecipes, setIsLoadingRecipes] = useState(true)
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null)
+  const [bookmarkCount, setBookmarkCount] = useState(0)
 
   useEffect(() => {
     // Add a timeout to prevent infinite loading
@@ -33,19 +35,26 @@ export default function DashboardPage() {
     return () => clearTimeout(timeout)
   }, [user, loading, router])
 
-  // Fetch user's recipes
+  // Fetch user's recipes and bookmarks
   useEffect(() => {
-    async function fetchRecipes() {
+    async function fetchData() {
       if (!user?.id) return
 
       setIsLoadingRecipes(true)
-      const userRecipes = await getRecipesByUserId(user.id)
+
+      // Fetch recipes and bookmark count in parallel
+      const [userRecipes, userBookmarks] = await Promise.all([
+        getRecipesByUserId(user.id),
+        getUserBookmarkCount(user.id)
+      ])
+
       setRecipes(userRecipes)
+      setBookmarkCount(userBookmarks)
       setIsLoadingRecipes(false)
     }
 
     if (user) {
-      fetchRecipes()
+      fetchData()
     }
   }, [user])
 
@@ -122,7 +131,7 @@ export default function DashboardPage() {
               </div>
               <div className="ml-4">
                 <h3 className="text-lg font-semibold text-gray-900">Bookmarked</h3>
-                <p className="text-gray-600">0 recipes</p>
+                <p className="text-gray-600">{bookmarkCount} {bookmarkCount === 1 ? 'recipe' : 'recipes'}</p>
               </div>
             </div>
           </div>
