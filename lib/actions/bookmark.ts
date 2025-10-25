@@ -137,3 +137,39 @@ export async function getRecipeWithAuthor(recipeId: string) {
     return null
   }
 }
+
+// Get all bookmarked recipes for a user
+export async function getBookmarkedRecipes(userId: string) {
+  try {
+    const { data: bookmarks, error: bookmarksError } = await supabase
+      .from('bookmarks')
+      .select('recipe_id')
+      .eq('user_id', userId)
+
+    if (bookmarksError || !bookmarks) {
+      console.error('Error fetching bookmarks:', bookmarksError)
+      return []
+    }
+
+    if (bookmarks.length === 0) {
+      return []
+    }
+
+    const recipeIds = bookmarks.map(b => b.recipe_id)
+
+    const { data: recipes, error: recipesError } = await supabase
+      .from('recipes')
+      .select('*')
+      .in('id', recipeIds)
+
+    if (recipesError || !recipes) {
+      console.error('Error fetching bookmarked recipes:', recipesError)
+      return []
+    }
+
+    return recipes
+  } catch (error) {
+    console.error('Error fetching bookmarked recipes:', error)
+    return []
+  }
+}

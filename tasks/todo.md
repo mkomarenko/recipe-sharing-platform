@@ -70,3 +70,44 @@ Implement a detailed recipe view page that displays full recipe information with
 - Page is responsive and matches existing design
 - All linting and type checks pass
 - Recipe author information is displayed
+
+---
+
+# Bookmarks Feature - Dashboard View (3.6 - Remaining)
+
+## Overview
+Implement viewing bookmarked recipes in the dashboard. The bookmark/unbookmark functionality is already implemented in Recipe Detail Page.
+
+## Remaining Tasks
+
+### 1. Backend/Data Layer
+- [ ] Create `getBookmarkedRecipes(userId)` function in `lib/actions/bookmark.ts`
+  - Fetch all recipes bookmarked by the user
+  - Include recipe details (title, image, description, category, etc.)
+  - Return array of recipes
+
+### 2. Dashboard Page Updates
+- [ ] Update `app/dashboard/page.tsx` to display bookmarked recipes
+  - Fetch bookmarked recipes using the new function
+  - Add state for bookmarked recipes list
+  - Create a "Bookmarked Recipes" section below "My Recipes"
+  - Display bookmarked recipes using same card layout
+  - Handle empty state (no bookmarks yet)
+
+### 3. Testing & Quality Assurance
+- [ ] Test fetching bookmarked recipes
+- [ ] Test empty state display
+- [ ] Test clicking on bookmarked recipe cards
+- [ ] Run `npm run lint && npm run type-check && npm run build`
+
+## Technical Notes
+- Reuse existing recipe card UI patterns from dashboard
+- Keep implementation simple - add new section below "My Recipes"
+- Fetch both user recipes and bookmarked recipes in parallel
+- Already have `getUserBookmarkCount` implemented for the stats card
+
+## Success Criteria
+- Users can see all their bookmarked recipes in the dashboard
+- Clicking on a bookmarked recipe navigates to the detail page
+- Empty state is shown when user has no bookmarks
+- All linting and type checks pass
