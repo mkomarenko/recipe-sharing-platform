@@ -19,12 +19,12 @@ export default function HeroSection() {
           >
             Browse Recipes
           </Link>
-          <Link 
-            href="/create" 
-            className="border-2 border-orange-600 text-orange-600 px-8 py-3 rounded-lg text-lg font-semibold hover:bg-orange-600 hover:text-white transition-colors"
+          <button
+            disabled
+            className="border-2 border-gray-400 text-gray-400 px-8 py-3 rounded-lg text-lg font-semibold cursor-not-allowed opacity-60"
           >
             Share Your Recipe
-          </Link>
+          </button>
         </div>
       </div>
     </section>

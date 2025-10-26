@@ -26,10 +26,11 @@ export default function Header() {
             <Link href="/recipes" className="text-gray-700 hover:text-orange-600 transition-colors">
               Browse Recipes
             </Link>
-            <Link href="/categories" className="text-gray-700 hover:text-orange-600 transition-colors">
+            {/* Temporarily Hidden - Categories */}
+            {/* <Link href="/categories" className="text-gray-700 hover:text-orange-600 transition-colors">
               Categories
-            </Link>
-            
+            </Link> */}
+
             {showLoading ? (
               <div className="flex items-center space-x-2">
                 <div className="animate-pulse bg-gray-200 h-4 w-20 rounded"></div>

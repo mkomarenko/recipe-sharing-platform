@@ -175,8 +175,8 @@ export default function ProfilePage() {
               </div>
             )}
 
-            {/* Stats Section */}
-            <div className="mt-8 border-t pt-6">
+            {/* Stats Section - Temporarily Hidden */}
+            {/* <div className="mt-8 border-t pt-6">
               <h3 className="text-lg font-semibold text-gray-900 mb-4">Recipe Statistics</h3>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="bg-orange-50 p-4 rounded-lg text-center">
@@ -192,7 +192,7 @@ export default function ProfilePage() {
                   <div className="text-sm text-gray-600">Total Recipe Views</div>
                 </div>
               </div>
-            </div>
+            </div> */}
           </div>
         </div>
       </div>
